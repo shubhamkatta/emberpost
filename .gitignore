@@ -1,0 +1,16 @@
+.env
+config.yaml
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+__pycache__/
+.venv/
+.DS_Store
+backups/
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+build/
+generate.log
+trails*.jsonl*
