@@ -1,0 +1,75 @@
+timezone: America/New_York
+send_window:            # emails only go out inside this window, local time
+  start: "09:30"
+  end: "18:00"
+weekend_factor: 0.0     # 0 = no weekend sends, 0.2 = 20% of weekday volume
+database: warmup.db
+
+business:
+  description: "Acme (example.com), a scheduling and customer-communication platform for small service businesses. It offers an online booking page synced with Google Calendar, sends reminders, shares intake forms, answers common questions, and follows up on unpaid invoices"
+  tone: "friendly, calm and plain-spoken, like a professional writing to a colleague. No jargon, no hype"
+  avoid: "real customer names or personal details; exact prices or discounts; claims of guaranteed results"
+  topics:               # seeds for conversations between the founder and customer peers
+    - "booking a 15 minute demo of Acme for a small studio"
+    - "questions about how reminders are sent for after-hours bookings"
+    - "setting up the 10 minute onboarding call to connect Google Calendar"
+    - "asking how intake forms are stored and who can see them"
+    - "checking how customer data is encrypted and whether it is used for AI training"
+    - "comparing plans for a small team of three"
+    - "following up after the 14 day trial about reminders and no-shows"
+    - "asking how payment follow-ups work for unpaid invoices"
+    - "scheduling a pilot for a team or training institute"
+    - "feedback on the weekly summary email"
+    - "how urgent customer messages are routed straight to the owner"
+
+ramp:
+  start_per_day: 3      # primary account sends/day on day 0
+  max_per_day: 40       # ceiling after days_to_max
+  days_to_max: 35
+  hold_if_spam_rate_above: 0.2   # ramp pauses while recent spam placement exceeds this
+
+conversation:
+  min_turns: 2          # messages per thread, inclusive range
+  max_turns: 5
+  reply_rate: 0.7       # chance each message gets answered
+  reply_delay_minutes: [8, 240]
+  primary_open_share: 0.4   # share of daily cap the primary starts itself
+  peer_open_share: 0.2      # threads peers start toward the primary (share of cap)
+  peer_max_per_day: 15
+  star_rate: 0.25       # share of received mails the peer stars
+
+llm:
+  enabled: true
+  provider: cli         # cli = Claude Code CLI login (fine for a laptop). api = Anthropic API key (use this on a server:
+                        # a CLI login can expire unnoticed). Set ANTHROPIC_API_KEY in .env for api.
+  api_key_env: ANTHROPIC_API_KEY
+  command: claude       # cli only: path to the claude binary
+  model: haiku          # cli: alias or full model name. api: haiku | sonnet | opus, or a full model ID
+
+broken_retry_hours: 6   # an account that fails login is paused, then re-checked after this long
+
+trails:                 # pre-generated conversations (python -m warmup generate --count 500)
+  enabled: true
+  file: trails.jsonl    # one whole conversation per line, plain text. Which ones were sent is tracked in the DB
+  fallback: live        # when the file runs out: live = write emails on the fly, stop = send nothing new
+  low_stock_alert: 60   # alert when fewer unsent emails than this remain
+
+alerts:                 # the URLs are secrets, so they are read from env vars (see .env.example)
+  webhook_url_env: ALERT_WEBHOOK_URL    # Slack or Discord incoming webhook (or any URL accepting JSON)
+  heartbeat_url_env: HEARTBEAT_URL      # dead-man's switch: pinged after every good tick (healthchecks.io etc.)
+  min_interval_hours: 6                 # the same problem alerts at most this often
+
+primary:                # Google Workspace mailbox you want to warm
+  email: you@example.com
+  name: Your Name
+  persona: "founder at Acme"
+  password_env: PRIMARY_APP_PASSWORD
+
+peers:
+  count: 5              # use the first N accounts below. Change freely.
+  accounts:
+    - {email: peer1@gmail.com, name: Jamie Rivera,  persona: "independent consultant running a solo practice", password_env: PEER1_APP_PASSWORD}
+    - {email: peer2@gmail.com, name: Chris Walker,  persona: "operations manager at a small three-person agency", password_env: PEER2_APP_PASSWORD}
+    - {email: peer3@gmail.com, name: Taylor Brooks, persona: "freelance coach with a growing client list", password_env: PEER3_APP_PASSWORD}
+    - {email: peer4@gmail.com, name: Morgan Patel,  persona: "studio owner who also mentors trainees", password_env: PEER4_APP_PASSWORD}
+    - {email: peer5@gmail.com, name: Casey Nguyen,  persona: "program coordinator at a professional training institute", password_env: PEER5_APP_PASSWORD}
