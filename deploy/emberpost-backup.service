@@ -1,0 +1,17 @@
+[Unit]
+Description=emberpost database backup
+
+[Service]
+Type=oneshot
+User=emberpost
+Group=emberpost
+WorkingDirectory=/opt/emberpost
+EnvironmentFile=/etc/emberpost/env
+ExecStart=/opt/emberpost/venv/bin/python -m warmup backup -c /etc/emberpost/config.yaml --to /var/lib/emberpost/backups --keep 14
+StateDirectory=emberpost
+StateDirectoryMode=0700
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true

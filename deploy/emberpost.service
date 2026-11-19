@@ -1,0 +1,40 @@
+[Unit]
+Description=emberpost mailbox warmup
+Documentation=https://example.com
+After=network-online.target
+Wants=network-online.target
+StartLimitIntervalSec=600
+StartLimitBurst=5
+
+[Service]
+Type=simple
+User=emberpost
+Group=emberpost
+WorkingDirectory=/opt/emberpost
+EnvironmentFile=/etc/emberpost/env
+Environment=PYTHONUNBUFFERED=1
+ExecStart=/opt/emberpost/venv/bin/python -m warmup run -c /etc/emberpost/config.yaml
+Restart=on-failure
+RestartSec=30
+TimeoutStopSec=30
+
+# /var/lib/emberpost is the only writable path: set `database: /var/lib/emberpost/warmup.db`
+StateDirectory=emberpost
+StateDirectoryMode=0700
+UMask=0077
+
+# Hardening
+NoNewPrivileges=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectSystem=strict
+ProtectHome=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictNamespaces=true
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+LockPersonality=true
+
+[Install]
+WantedBy=multi-user.target

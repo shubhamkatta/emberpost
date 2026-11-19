@@ -1,0 +1,13 @@
+.git
+.github
+.env
+config.yaml
+*.db
+*.db-*
+*.lock
+backups
+tests
+deploy
+__pycache__
+.venv
+.DS_Store

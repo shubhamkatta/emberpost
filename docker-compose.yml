@@ -1,0 +1,29 @@
+# 1. cp config.example.yaml config.yaml   and set   database: /data/warmup.db   and   llm.provider: api
+# 2. cp .env.example .env                 and fill in the app passwords, ANTHROPIC_API_KEY, alert URLs
+# 3. docker compose up -d --build
+#    docker compose logs -f
+#    docker compose exec emberpost python -m warmup status -c /config/config.yaml
+#    docker compose exec emberpost python -m warmup backup -c /config/config.yaml --to /data/backups
+services:
+  emberpost:
+    build: .
+    image: emberpost:latest
+    restart: unless-stopped
+    init: true                    # proper signal handling and zombie reaping for PID 1
+    env_file: .env
+    volumes:
+      - ./config.yaml:/config/config.yaml:ro
+      - emberpost-data:/data
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop: [ALL]
+    security_opt:
+      - no-new-privileges:true
+    stop_grace_period: 30s        # a kill mid-send is safe (see README: Reliability), this just avoids it
+    logging:
+      driver: json-file
+      options: {max-size: "10m", max-file: "5"}
+
+volumes:
+  emberpost-data:
