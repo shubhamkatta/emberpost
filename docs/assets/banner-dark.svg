@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 62 800 250" role="img">
+<defs>
+<linearGradient id="ember" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#ff5a1f"/><stop offset="0.55" stop-color="#ff7a3d"/><stop offset="1" stop-color="#ffb454"/></linearGradient>
+<linearGradient id="warm" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#3b4658"/><stop offset="0.5" stop-color="#ffb454"/><stop offset="1" stop-color="#ff7a3d"/></linearGradient>
+<linearGradient id="area" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ff7a3d" stop-opacity="0.35"/><stop offset="1" stop-color="#ff7a3d" stop-opacity="0"/></linearGradient>
+<marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#8b949e"/></marker>
+<marker id="arre" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#ff7a3d"/></marker>
+</defs>
+<rect x="96" y="183.0" width="34" height="22.0" rx="5" fill="url(#warm)" opacity="0.35"/>
+<g transform="translate(103,167.0)" opacity="0.45"><rect width="20" height="13" rx="2" fill="none" stroke="#e6edf3" stroke-width="1.4"/><path d="M1,2 L10,8 L19,2" fill="none" stroke="#e6edf3" stroke-width="1.4"/></g>
+<rect x="146" y="170.5" width="34" height="34.5" rx="5" fill="url(#warm)" opacity="0.40"/>
+<rect x="196" y="158.0" width="34" height="47.0" rx="5" fill="url(#warm)" opacity="0.46"/>
+<g transform="translate(203,142.0)" opacity="0.54"><rect width="20" height="13" rx="2" fill="none" stroke="#e6edf3" stroke-width="1.4"/><path d="M1,2 L10,8 L19,2" fill="none" stroke="#e6edf3" stroke-width="1.4"/></g>
+<rect x="246" y="145.5" width="34" height="59.5" rx="5" fill="url(#warm)" opacity="0.51"/>
+<rect x="296" y="133.0" width="34" height="72.0" rx="5" fill="url(#warm)" opacity="0.57"/>
+<g transform="translate(303,117.0)" opacity="0.63"><rect width="20" height="13" rx="2" fill="none" stroke="#e6edf3" stroke-width="1.4"/><path d="M1,2 L10,8 L19,2" fill="none" stroke="#e6edf3" stroke-width="1.4"/></g>
+<rect x="346" y="120.5" width="34" height="84.5" rx="5" fill="url(#warm)" opacity="0.62"/>
+<rect x="396" y="108.0" width="34" height="97.0" rx="5" fill="url(#warm)" opacity="0.68"/>
+<g transform="translate(403,92.0)" opacity="0.73"><rect width="20" height="13" rx="2" fill="none" stroke="#e6edf3" stroke-width="1.4"/><path d="M1,2 L10,8 L19,2" fill="none" stroke="#e6edf3" stroke-width="1.4"/></g>
+<rect x="446" y="95.5" width="34" height="109.5" rx="5" fill="url(#warm)" opacity="0.73"/>
+<rect x="496" y="83.0" width="34" height="122.0" rx="5" fill="url(#warm)" opacity="0.78"/>
+<g transform="translate(503,67.0)" opacity="0.82"><rect width="20" height="13" rx="2" fill="none" stroke="#e6edf3" stroke-width="1.4"/><path d="M1,2 L10,8 L19,2" fill="none" stroke="#e6edf3" stroke-width="1.4"/></g>
+<rect x="546" y="70.5" width="34" height="134.5" rx="5" fill="url(#warm)" opacity="0.84"/>
+<rect x="596" y="58.0" width="34" height="147.0" rx="5" fill="url(#warm)" opacity="0.89"/>
+<g transform="translate(603,42.0)" opacity="0.91"><rect width="20" height="13" rx="2" fill="none" stroke="#e6edf3" stroke-width="1.4"/><path d="M1,2 L10,8 L19,2" fill="none" stroke="#e6edf3" stroke-width="1.4"/></g>
+<rect x="646" y="45.5" width="34" height="159.5" rx="5" fill="url(#warm)" opacity="0.95"/>
+<rect x="696" y="33.0" width="34" height="172.0" rx="5" fill="url(#warm)" opacity="1.00"/>
+<g transform="translate(703,17.0)" opacity="1.00"><rect width="20" height="13" rx="2" fill="none" stroke="#e6edf3" stroke-width="1.4"/><path d="M1,2 L10,8 L19,2" fill="none" stroke="#e6edf3" stroke-width="1.4"/></g>
+<g transform="translate(713.0,-29.0) scale(1.35)"><path d="M0,-34 C9,-18 20,-10 20,6 C20,19 11,28 0,28 C-11,28 -20,19 -20,6 C-20,-2 -14,-9 -9,-16 C-7,-9 -4,-6 0,-3 C3,-15 1,-24 0,-34 Z" fill="url(#ember)"/><path d="M0,-6 C6,2 10,6 10,13 C10,20 5,24 0,24 C-5,24 -10,20 -10,13 C-10,8 -6,5 0,-6 Z" fill="#ffb454" opacity="0.9"/></g>
+<rect x="60" y="212" width="680" height="3" rx="1.5" fill="#e6edf3" opacity="0.85"/>
+<text x="400" y="266" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="42" font-weight="800" letter-spacing="12" fill="#e6edf3">EMBERPOST</text>
+<text x="400" y="298" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="13.5" letter-spacing="2.5" fill="#8b949e">ramp · converse · rescue · engage</text>
+</svg>

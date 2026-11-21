@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 340" role="img">
+<defs>
+<linearGradient id="ember" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#ff5a1f"/><stop offset="0.55" stop-color="#ff7a3d"/><stop offset="1" stop-color="#ffb454"/></linearGradient>
+<linearGradient id="warm" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#3b4658"/><stop offset="0.5" stop-color="#ffb454"/><stop offset="1" stop-color="#ff7a3d"/></linearGradient>
+<linearGradient id="area" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ff7a3d" stop-opacity="0.35"/><stop offset="1" stop-color="#ff7a3d" stop-opacity="0"/></linearGradient>
+<marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#8b949e"/></marker>
+<marker id="arre" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#ff7a3d"/></marker>
+</defs>
+<text x="70" y="24" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="12" letter-spacing="2" fill="#8b949e">VOLUME RAMP · SENDS PER DAY</text>
+<line x1="70" y1="280.0" x2="760" y2="280.0" stroke="#21262d" stroke-width="1"/>
+<text x="60" y="284.0" text-anchor="end" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="11" fill="#8b949e">0</text>
+<line x1="70" y1="225.5" x2="760" y2="225.5" stroke="#21262d" stroke-width="1"/>
+<text x="60" y="229.5" text-anchor="end" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="11" fill="#8b949e">10</text>
+<line x1="70" y1="170.9" x2="760" y2="170.9" stroke="#21262d" stroke-width="1"/>
+<text x="60" y="174.9" text-anchor="end" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="11" fill="#8b949e">20</text>
+<line x1="70" y1="116.4" x2="760" y2="116.4" stroke="#21262d" stroke-width="1"/>
+<text x="60" y="120.4" text-anchor="end" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="11" fill="#8b949e">30</text>
+<line x1="70" y1="61.8" x2="760" y2="61.8" stroke="#21262d" stroke-width="1"/>
+<text x="60" y="65.8" text-anchor="end" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="11" fill="#8b949e">40</text>
+<path d="M70.0,263.6 L85.3,257.9 L100.7,252.1 L116.0,246.3 L131.3,240.6 L146.7,234.8 L162.0,229.0 L177.3,223.3 L192.7,217.5 L208.0,211.7 L223.3,206.0 L238.7,200.2 L254.0,194.4 L269.3,188.7 L284.7,182.9 L300.0,182.9 L315.3,182.9 L330.7,182.9 L346.0,182.9 L361.3,177.1 L376.7,171.4 L392.0,165.6 L407.3,159.8 L422.7,154.1 L438.0,148.3 L453.3,142.5 L468.7,136.8 L484.0,131.0 L499.3,125.2 L514.7,119.5 L530.0,113.7 L545.3,107.9 L560.7,102.2 L576.0,96.4 L591.3,90.6 L606.7,84.9 L622.0,79.1 L637.3,73.4 L652.7,67.6 L668.0,61.8 L683.3,61.8 L698.7,61.8 L714.0,61.8 L729.3,61.8 L744.7,61.8 L760.0,61.8 L760,280 L70,280 Z" fill="url(#area)"/>
+<path d="M70.0,263.6 L85.3,257.9 L100.7,252.1 L116.0,246.3 L131.3,240.6 L146.7,234.8 L162.0,229.0 L177.3,223.3 L192.7,217.5 L208.0,211.7 L223.3,206.0 L238.7,200.2 L254.0,194.4 L269.3,188.7 L284.7,182.9 L300.0,182.9 L315.3,182.9 L330.7,182.9 L346.0,182.9 L361.3,177.1 L376.7,171.4 L392.0,165.6 L407.3,159.8 L422.7,154.1 L438.0,148.3 L453.3,142.5 L468.7,136.8 L484.0,131.0 L499.3,125.2 L514.7,119.5 L530.0,113.7 L545.3,107.9 L560.7,102.2 L576.0,96.4 L591.3,90.6 L606.7,84.9 L622.0,79.1 L637.3,73.4 L652.7,67.6 L668.0,61.8 L683.3,61.8 L698.7,61.8 L714.0,61.8 L729.3,61.8 L744.7,61.8 L760.0,61.8" fill="none" stroke="url(#warm)" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round"/>
+<rect x="284.7" y="40" width="61.3" height="240" fill="#f85149" opacity="0.10"/>
+<line x1="284.7" y1="40" x2="284.7" y2="280" stroke="#f85149" stroke-width="1.2" stroke-dasharray="4 4"/>
+<line x1="346.0" y1="40" x2="346.0" y2="280" stroke="#f85149" stroke-width="1.2" stroke-dasharray="4 4"/>
+<text x="315.3" y="56" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="11" font-weight="700" fill="#f85149">HOLD</text>
+<text x="315.3" y="70" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="10" fill="#f85149">spam &gt; 20%</text>
+<circle cx="70.0" cy="263.6" r="5" fill="#ff7a3d"/>
+<text x="82.0" y="233.6" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="12" font-weight="700" fill="#e6edf3">day 0 · 3/day</text>
+<circle cx="668.0" cy="61.8" r="5" fill="#ffb454"/>
+<text x="658.0" y="49.8" text-anchor="end" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="12" font-weight="700" fill="#e6edf3">ceiling · 40/day</text>
+<text x="70.0" y="300" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="11" fill="#8b949e">0</text>
+<text x="223.3" y="300" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="11" fill="#8b949e">10</text>
+<text x="376.7" y="300" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="11" fill="#8b949e">20</text>
+<text x="530.0" y="300" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="11" fill="#8b949e">30</text>
+<text x="683.3" y="300" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="11" fill="#8b949e">40</text>
+<text x="415.0" y="322" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="11" fill="#8b949e">sending days (weekends do not count)</text>
+</svg>
