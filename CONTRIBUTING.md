@@ -13,6 +13,10 @@ First-time contributors are welcome. Useful contributions include:
 
 If you are unsure whether something fits, open an issue first, before sinking time into a large PR.
 
+## Code of Conduct
+
+This project follows the [Contributor Covenant v2.1](CODE_OF_CONDUCT.md). By participating you agree to uphold it.
+
 ## Ground rules
 
 - **Never commit secrets or personal data.** No real email addresses, app passwords, webhook URLs, `config.yaml`, `.env`, `*.db` or `trails.jsonl`. Use `example.com` and `peerN@gmail.com` in examples and tests. These files are already in `.gitignore`.

@@ -298,7 +298,7 @@ emberpost is for warming mailboxes you own, using accounts you own, to send mail
 
 ## Contributing
 
-Issues and PRs are welcome. Read [CONTRIBUTING.md](CONTRIBUTING.md) first. Run `pytest` and `ruff check .` before opening a PR. Report vulnerabilities privately, as described in [SECURITY.md](SECURITY.md).
+Issues and PRs are welcome. Read [CONTRIBUTING.md](CONTRIBUTING.md) first and follow the [Code of Conduct](CODE_OF_CONDUCT.md). Run `pytest` and `ruff check .` before opening a PR. Report vulnerabilities privately, as described in [SECURITY.md](SECURITY.md).
 
 ## License
 
