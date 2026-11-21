@@ -299,7 +299,7 @@ def generate_trails(cfg, db, content, store: TrailStore, count: int, rng: random
         topic = next_topic()
         first = [True]
 
-        def make_thread(a=a, b=b, turns=turns, topic=topic):
+        def make_thread(a=a, b=b, turns=turns, topic=topic, first=first):
             # a retry after a duplicate gets a fresh topic instead of asking for the same one again
             t = topic if first[0] else next_topic()
             first[0] = False
