@@ -1,52 +1,199 @@
-# emberpost
+<h1 align="center">🔥 emberpost</h1>
 
-> Warm up a new sending mailbox with realistic, threaded conversations.
+<p align="center"><strong>Cold domain. Warm inbox. No guesswork.</strong></p>
 
-Warms up one Google Workspace mailbox by holding threaded business conversations with a configurable pool of Gmail accounts you own.
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/assets/banner-dark.svg">
+    <img alt="emberpost: ramp, converse, rescue, engage" src="docs/assets/banner-light.svg" width="720">
+  </picture>
+</p>
 
-## What it does
+<p align="center">
+Warms a new Google Workspace mailbox by running <strong>real, threaded business conversations</strong> with Gmail accounts you own. It ramps volume on a schedule, writes every email with an LLM, <strong>pulls mail out of Spam</strong>, and marks it read, starred and important. State lives in SQLite. A crash never double-sends.
+</p>
 
-- Primary account opens threads to peers, peers open threads to primary. Threads run 2 to 5 messages with delays of 8 minutes to 4 hours, only inside your send window, weekdays only by default.
-- Replies are real replies: `In-Reply-To`, `References`, quoted text, `Re:` subjects.
-- Every message is located in the recipient mailbox (Inbox, Promotions or Spam). If it landed in Spam it is moved back to Inbox. Received mail is marked read, sometimes starred, marked Important.
-- Volume ramps from `start_per_day` to `max_per_day` over `days_to_max` sending days (weekdays count, weekends don't). The ramp pauses while the 3-day spam rate is above `hold_if_spam_rate_above`.
-- Content comes from Claude (`llm.provider: cli` uses headless Claude Code and your login; `api` uses an Anthropic API key, the better choice on a server) with a template fallback. Every LLM email is validated (no placeholders, links, emojis or meta text) and compared with recent mail; bad or repeated output is regenerated, then falls back to a template. After 3 hard LLM failures in a row (expired login, no credit) the LLM is paused for 30 minutes and an ERROR is logged. `status` shows the LLM/template split. Templates repeat, so use the LLM for a month-long run.
-- State lives in SQLite (`warmup.db`, WAL mode). Restarting is safe.
+<p align="center"><em>Send like a human. Recover like a machine.</em></p>
 
-## Reliability
+<p align="center">
+  <a href="https://github.com/shubhamkatta/emberpost/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/shubhamkatta/emberpost/actions/workflows/ci.yml/badge.svg"></a>
+  <a href="LICENSE"><img alt="License: MIT" src="https://img.shields.io/github/license/shubhamkatta/emberpost.svg"></a>
+  <img alt="Python 3.10+" src="https://img.shields.io/badge/python-3.10%2B-blue.svg">
+  <img alt="Tests: 66 passing" src="https://img.shields.io/badge/tests-66%20passing-brightgreen.svg">
+  <img alt="Dependencies: 2" src="https://img.shields.io/badge/runtime%20deps-2-orange.svg">
+  <img alt="Docker ready" src="https://img.shields.io/badge/docker-ready-2496ED.svg">
+  <a href="https://github.com/shubhamkatta/emberpost/stargazers"><img alt="Stars" src="https://img.shields.io/github/stars/shubhamkatta/emberpost?style=flat&color=ff6a2b"></a>
+  <a href="https://github.com/shubhamkatta/emberpost/pulls"><img alt="PRs welcome" src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg"></a>
+</p>
 
-- **No double sends.** Each email is composed once and saved with its Message-ID before SMTP is touched, and the sent message and job are closed in one transaction. If the process dies mid-send, the next tick asks the recipient mailbox whether it arrived: if yes it is just recorded, if no it is resent under the same Message-ID, so a rare double delivery is collapsed by Gmail.
-- **One process at a time.** `tick` and `run` take a lock on `warmup.db.lock`. A second `tick` (cron overlap) skips quietly, a second `run` exits with an error.
-- **Login failures are handled, not guessed from error text.** A rejected login pauses that account (persisted in the DB, survives restarts), keeps its jobs and attempt counts, and re-checks the login every `broken_retry_hours`. Paused accounts show as `BROKEN` in `status`.
+<details>
+<summary><strong>📖 Contents</strong></summary>
+
+- [Why emberpost](#why-emberpost)
+- [How a tick works](#how-a-tick-works)
+- [Features](#features)
+- [The ramp](#the-ramp)
+- [Placement and rescue](#placement-and-rescue)
+- [Crash-safe sending](#crash-safe-sending)
+- [Pre-generated conversations (trails)](#pre-generated-conversations-trails)
+- [Quickstart](#quickstart)
+- [Commands](#commands)
+- [Monitoring and alerts](#monitoring-and-alerts)
+- [Config validation](#config-validation)
+- [Deploying](#deploying)
+- [Limits you should know](#limits-you-should-know)
+- [Responsible use](#responsible-use)
+- [Contributing](#contributing)
+- [License](#license)
+
+</details>
+
+---
+
+## Why emberpost
+
+A brand-new sending domain has no reputation. Send 200 cold emails on day one and Gmail files you under Spam. Hosted warmup tools cost a monthly fee, hand your passwords to a third party, and send the same canned text to every customer.
+
+**emberpost is the self-hosted alternative.** You run it, you own the accounts, and nothing leaves your machine except SMTP and IMAP traffic and the LLM call.
+
+- **Real conversations.** 2 to 5 messages per thread, correct `In-Reply-To` and `References` headers, quoted text, `Re:` subjects, human-length delays.
+- **Verified placement.** Every message is found in the recipient mailbox. Spam gets moved to Inbox. You see the spam rate, not a vanity "emails sent" counter.
+- **Self-throttling.** The ramp holds automatically while spam placement is above your threshold.
+- **Boring to operate.** One process, one SQLite file, one config file. Restart whenever you want.
+
+## How a tick works
+
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/assets/pipeline-dark.svg">
+    <img alt="Pipeline: plan, compose, validate, send, locate, rescue, engage" src="docs/assets/pipeline-light.svg" width="100%">
+  </picture>
+</p>
+
+| Stage | What happens |
+|---|---|
+| **Plan** | Today's cap comes from the ramp. Threads are scheduled inside your send window, on weekdays by default. |
+| **Compose** | Takes the next pre-written conversation from the trails file, else asks the LLM, else uses a template. |
+| **Validate** | Rejects placeholders, links, emojis and meta text. Compares against recent mail and regenerates repeats. |
+| **Send** | Saves the Message-ID to the database **before** SMTP is touched. |
+| **Locate** | Finds the message in the recipient mailbox over IMAP: Inbox, Promotions or Spam. |
+| **Rescue** | Moves Spam back to Inbox with copy-then-delete, so the only copy is never lost. |
+| **Engage** | Marks received mail read, sometimes stars it, marks it Important, and schedules the reply. |
+
+## Features
+
+### Conversation engine
+- **Two-way threads.** The primary opens threads to peers and peers open threads to the primary, with a configurable split.
+- **Natural timing.** Reply delays of 8 minutes to 4 hours. `reply_rate` decides whether a thread continues, so some stop early, like real ones.
+- **Claude-written content.** `llm.provider: cli` uses headless Claude Code and your login. `api` uses an Anthropic API key, the right choice on a server.
+- **Template fallback.** After 3 hard LLM failures in a row, the LLM pauses for 30 minutes and an alert fires. `status` shows the LLM/template split.
+
+### Deliverability control
+- **Ramp** from `start_per_day` to `max_per_day` over `days_to_max` sending days. Weekends do not count.
+- **Spam-rate gate.** The ramp pauses while the 3-day spam rate exceeds `hold_if_spam_rate_above`.
+- **Spam rescue and engagement signals** on the receiving side, per peer.
+
+### Operations
+- **Alerts** to Slack, Discord or any JSON webhook. Throttled per kind, and the throttle survives restarts.
+- **Dead-man's switch** heartbeat, pinged only after a tick succeeds.
+- **`health` command** and a Docker `HEALTHCHECK` that fail when the loop stalls.
+- **Verified online backups** of the database while it is running.
+
+### Hardened by default
+- **Config validation** reports every problem at once. A typo like `max_per_dya` gets "did you mean 'max_per_day'?".
+- **Secrets stay in `.env`.** Webhook URLs and passwords are never read from `config.yaml` and never logged.
+- **Docker image** runs unprivileged, read-only, all capabilities dropped. The systemd unit is sandboxed.
+- **Runtime dependencies: 2** (`pyyaml`, `tzdata`). Everything else is the standard library.
+
+## The ramp
+
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/assets/ramp-dark.svg">
+    <img alt="Volume ramp from 3 to 40 sends per day with a spam-rate hold" src="docs/assets/ramp-light.svg" width="720">
+  </picture>
+</p>
+
+Volume rises linearly from 3 to 40 sends a day across 35 sending days (defaults, all configurable). When spam placement crosses 20% (over at least 5 recent messages), the day counter stops until it recovers. The illustration shows a hold around day 14 to 18. Each hold delays full volume by exactly the days it lasted.
+
+## Placement and rescue
+
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/assets/placement-dark.svg">
+    <img alt="Placement outcomes: inbox kept, promotions tracked, spam rescued" src="docs/assets/placement-light.svg" width="720">
+  </picture>
+</p>
+
+Placement is read from the recipient mailbox, not guessed. Promotions is detected from `X-GM-LABELS` and Gmail's `category:promotions` search.
+
+## Crash-safe sending
+
+**An email is composed once, saved, then sent.** If the process dies at any point, the next tick resolves it from the recipient mailbox instead of guessing.
+
+```mermaid
+flowchart LR
+    A[Compose email]:::s --> B[Save Message-ID<br/>+ body to SQLite]:::s
+    B --> C[SMTP send]:::s
+    C --> D[Record sent + close job<br/>in ONE transaction]:::ok
+    C -. process dies .-> E{Next tick:<br/>ask recipient IMAP}
+    E -->|arrived| F[Just record it]:::ok
+    E -->|missing| G[Resend with the<br/>SAME Message-ID]:::s
+    G --> D
+
+    classDef s fill:transparent,stroke:#ff6a2b,stroke-width:1.5px
+    classDef ok fill:transparent,stroke:#3fb950,stroke-width:1.5px
+```
+
+- **No double sends.** A rare double delivery is collapsed by Gmail because the Message-ID is identical.
+- **One process at a time.** `tick` and `run` take a lock on `warmup.db.lock`. A second `tick` (cron overlap) skips quietly. A second `run` exits with an error.
+- **Login failures are handled, not guessed from error text.** A rejected login pauses that account, persisted in the database. Its jobs and attempt counts are kept, and the login is re-checked every `broken_retry_hours`. Paused accounts show as `BROKEN` in `status`.
 
 ## Pre-generated conversations (trails)
 
-Instead of asking the LLM at send time, you can write the conversations ahead of time and let the engine send them.
+Write the conversations ahead of time and let the engine send them. You can read every email before it goes out.
 
-```
+```bash
 python -m warmup generate --count 500    # keep at least 500 UNSENT emails in trails.jsonl
 python -m warmup trails                  # stock, per-peer split, what has been used
 python -m warmup trails --show 3         # read the next 3 conversations
 ```
 
-- **The file** (`trails.file`, default `trails.jsonl`) is plain text, one whole conversation per line: opener, recipient, subject, and every message in order. It is append-only. You can open it, read it, delete a line you dislike, or add your own. Each line is validated on load (alternating senders, no placeholders, links or emojis); bad lines are skipped with a warning, never sent.
-- **`generate --count N` tops up to N unsent emails**, so it is safe to re-run, and it resumes after an interruption: conversations are written one at a time, so a crash leaves only whole, valid ones. It uses the LLM only (it refuses to write templates), spreads conversations evenly across your peers, mixes who opens, asks the LLM for extra topics so 500 emails do not circle the same dozen, and checks every email against the earlier ones. If the LLM stays unavailable for 30 minutes it stops cleanly (exit code 3).
-- **State lives in the database** (table `trail_state`), not in the file: each conversation is `reserved` when a day is planned, `active` after its first email, `done` after its last, or `failed` if its opener could not be sent. The last turn sent is recorded in the same transaction as the send, so a crash cannot desynchronise them. `status` shows the stock.
-- **The engine** picks the next unused conversation for each opening it plans (in file order, per direction) and sends each turn's pre-written text when that turn is due. Replies still depend on `reply_rate`, so a conversation can stop early. Conversations whose accounts are no longer configured are ignored.
-- **When the file runs out**, `trails.fallback: live` writes emails on the fly as before; `stop` sends nothing new (conversations already started still finish). You get an alert when stock drops below `trails.low_stock_alert`.
-- Sign-offs use the first names configured at generation time. If you rename an account afterwards, regenerate or edit its lines.
+- **A plain-text file.** `trails.jsonl` holds one whole conversation per line. It is append-only. Open it, delete a line you dislike, or add your own. Every line is validated on load. Bad lines are skipped with a warning and never sent.
+- **`generate --count N` tops up to N unsent emails.** It is safe to re-run and resumes after interruption, because conversations are written one at a time. It uses the LLM only and refuses to write templates. It spreads threads evenly across peers, mixes who opens, asks the LLM for extra topics, and checks every email against the earlier ones.
+- **State lives in the database** (`trail_state`), not the file: `reserved` when a day is planned, `active` after the first email, `done` after the last, `failed` if the opener could not be sent. The turn sent is recorded in the same transaction as the send.
+- **When the file runs out,** `trails.fallback: live` writes on the fly. `stop` sends nothing new while started conversations still finish. You get an alert when stock drops below `trails.low_stock_alert`.
+- Sign-offs use the first names configured at generation time. If you rename an account, regenerate or edit its lines.
 
-## Alerting and monitoring
+## Quickstart
 
-Set these in `.env` (the URLs are secrets, so they are never read from `config.yaml`) and test with `python -m warmup alert-test`:
+**1. Authenticate the primary domain first.** Warmup does not fix missing authentication.
+- SPF, DKIM (enable in Workspace admin, then publish the key) and DMARC (`p=none` to start).
 
-- `ALERT_WEBHOOK_URL`: a Slack or Discord incoming webhook, or any URL that accepts JSON. You are alerted when an account is disabled (and when it recovers), the ramp goes on hold for spam, a job is dropped after 4 failures, the LLM is paused, or 3 ticks in a row crash. Each kind of alert is throttled (`alerts.min_interval_hours`, default 6) and the throttle survives restarts. A failed delivery is retried on the next event, and the URL is never logged.
-- `HEARTBEAT_URL`: a dead-man's-switch (healthchecks.io, Better Stack, Uptime Kuma push). It is pinged only after a tick succeeds, so when the process dies, the machine sleeps or every tick fails, the pings stop and the monitor alerts you. Nothing running inside the process can report its own death.
-- `python -m warmup health` exits non-zero if the loop stopped ticking or nothing has succeeded for hours (used by the Docker `HEALTHCHECK`).
+**2. Prepare every account** (primary and peers).
+- Enable 2-Step Verification, create an App Password, enable IMAP. On Workspace, an admin may need to allow app passwords and IMAP.
 
-## Config validation
+**3. Install and configure.**
 
-Every command validates `config.yaml` and reports all problems at once. Unknown keys are errors with a suggestion (`max_per_dya` gives "did you mean 'max_per_day'?") because a typo would otherwise silently use the default. It also checks the timezone, send window, ranges and types, `peers.count` against the accounts listed, duplicate emails or password variables, missing secrets, and port 465. Warnings (not errors) cover things like fewer than 3 peers, over 50 sends a day, a ramp under 14 days, the LLM being off, or no alert webhook set.
+```bash
+git clone https://github.com/shubhamkatta/emberpost && cd emberpost
+pip install -r requirements.txt
+cp config.example.yaml config.yaml    # accounts, personas, business description, ramp
+cp .env.example .env                  # app passwords, ANTHROPIC_API_KEY, webhook URLs
+```
+
+**4. Verify, then run.**
+
+```bash
+python -m warmup validate    # config only, no network
+python -m warmup check       # log in to SMTP and IMAP for every account
+python -m warmup run         # loop forever. Or: `tick` from cron every 5 minutes
+python -m warmup status      # ramp day, cap, placement rates
+```
+
+`peers.count` picks how many of the listed peer accounts are active.
+
+**Try it with zero risk.** `--dry-run` runs the whole engine with no network and no secrets. It still writes to the configured database, so point `database:` at a throwaway file first.
 
 ## Commands
 
@@ -63,29 +210,36 @@ Every command validates `config.yaml` and reports all problems at once. Unknown 
 | `backup --to DIR --keep N` | Verified online copy of the database. |
 | `alert-test` | Send a test alert and heartbeat. |
 
-Common flags: `-c config.yaml`, `--dry-run` (no network, no secrets needed), `-v`.
+Common flags: `-c config.yaml`, `--dry-run`, `-v`. Invoke as `python -m warmup <command>`, or as `emberpost <command>` after `pip install .`.
 
-## Setup
+## Monitoring and alerts
 
-1. Prerequisites on the primary domain, before sending anything: SPF, DKIM (enable in Workspace admin, then publish the key), DMARC (`p=none` to start). Warmup does not fix missing authentication.
-2. On every Gmail account and the primary: enable 2-Step Verification, create an App Password, enable IMAP. For Workspace, an admin may need to allow app passwords/IMAP.
-3. Copy `config.example.yaml` to `config.yaml` and `.env.example` to `.env`. Fill them in. `peers.count` picks how many of the listed accounts are active.
-4. `pip install -r requirements.txt`
-5. `python -m warmup check` verifies SMTP and IMAP login for every account.
-6. `python -m warmup run` loops forever. Or run `python -m warmup tick` from cron every 5 minutes.
-7. `python -m warmup status` shows ramp day, cap, placement rates. `validate` checks the config without sending anything.
+Set these in `.env`. The URLs are secrets, so they are never read from `config.yaml`. Test with `python -m warmup alert-test`.
 
-`--dry-run` runs the whole engine with no network, but it still writes to the configured database (messages, jobs, trail progress), so point `database:` at a throwaway file when you try it. Tests: `pytest` runs everything. `test_sim` simulates 40 days, `test_robust` covers crash recovery, locking, broken accounts and content validation, `test_config` covers config validation and alerting, `test_ops` covers health and backup, and `test_imap` runs the Gmail transport against a fake Gmail, and `test_trails` covers generation, the file format and how the engine consumes it.
+| Variable | Purpose |
+|---|---|
+| `ALERT_WEBHOOK_URL` | Slack or Discord incoming webhook, or any URL that accepts JSON. |
+| `HEARTBEAT_URL` | Dead-man's switch (healthchecks.io, Better Stack, Uptime Kuma push). |
+
+**You are alerted when** an account is disabled (and when it recovers), the ramp goes on hold for spam, a job is dropped after 4 failures, the LLM is paused, trail stock runs low, or 3 ticks in a row crash. Each kind is throttled (`alerts.min_interval_hours`, default 6) and the throttle survives restarts. A failed delivery is retried on the next event.
+
+**The heartbeat pings only after a tick succeeds.** If the process dies, the machine sleeps or every tick fails, the pings stop and the monitor alerts you. Nothing running inside the process can report its own death. `python -m warmup health` exits non-zero if the loop stopped ticking or nothing has succeeded for hours. The Docker `HEALTHCHECK` uses it.
+
+## Config validation
+
+Every command validates `config.yaml` and reports **all** problems at once. Unknown keys are errors with a suggestion, because a typo would otherwise silently use the default. It also checks the timezone, send window, ranges and types, `peers.count` against the accounts listed, duplicate emails or password variables, missing secrets, and port 465.
+
+Warnings, not errors, cover fewer than 3 peers, more than 50 sends a day, a ramp under 14 days, the LLM being off, and no alert webhook set.
 
 ## Deploying
 
-The `claude` CLI login does not exist on a server or in a container, so set `llm.provider: api` and `ANTHROPIC_API_KEY` for either route. Before going live: `python -m warmup validate`, `python -m warmup check`, and `python -m warmup alert-test`.
+The `claude` CLI login does not exist on a server or in a container. Set `llm.provider: api` and `ANTHROPIC_API_KEY` for either route. Before going live, run `validate`, `check` and `alert-test`.
 
 ### Docker
 
-```
+```bash
 cp config.example.yaml config.yaml    # set database: /data/warmup.db and llm.provider: api
-cp .env.example .env                  # app passwords, ANTHROPIC_API_KEY, ALERT_WEBHOOK_URL, HEARTBEAT_URL
+cp .env.example .env
 docker compose up -d --build
 docker compose logs -f
 docker compose exec emberpost python -m warmup status -c /config/config.yaml
@@ -95,7 +249,7 @@ Runs as an unprivileged user with a read-only filesystem and all capabilities dr
 
 ### systemd (VPS)
 
-```
+```bash
 sudo useradd --system --home /opt/emberpost --shell /usr/sbin/nologin emberpost
 sudo mkdir -p /opt/emberpost /etc/emberpost
 sudo cp -r warmup requirements.txt /opt/emberpost/
@@ -112,17 +266,40 @@ The unit restarts on failure and is sandboxed (`ProtectSystem=strict`, only `/va
 
 ### Operations
 
-- `python -m warmup backup --to DIR --keep 14` takes a verified online copy of the database (safe while `run` is going). The systemd timer does this daily into `/var/lib/emberpost/backups`. Those sit on the same disk, so copy them off the machine too.
-- Restoring: stop the service, replace `warmup.db` with a backup, start it. In-flight sends are reconciled on the next tick.
-- Stopping with SIGTERM or `docker stop` is safe even mid-send (see Reliability).
-- CI (`.github/workflows/ci.yml`) runs lint and the tests on Python 3.10 to 3.13, then builds the image and validates the example config inside it. Dependencies are pinned in `requirements.txt`; Dependabot proposes updates weekly.
-- Development: `pip install -r requirements.txt -r requirements-dev.txt`, then `pytest` and `ruff check .`.
+- **Backups.** `python -m warmup backup --to DIR --keep 14` takes a verified online copy, safe while `run` is going. The systemd timer does this daily into `/var/lib/emberpost/backups`. Those sit on the same disk, so copy them off the machine too.
+- **Restoring.** Stop the service, replace `warmup.db` with a backup, start it. In-flight sends are reconciled on the next tick.
+- **Stopping.** SIGTERM or `docker stop` is safe even mid-send.
+- **CI.** `.github/workflows/ci.yml` runs lint and tests on Python 3.10 to 3.13, then builds the image and validates the example config inside it. Dependabot proposes updates weekly.
+- **Development.** `pip install -r requirements.txt -r requirements-dev.txt`, then `pytest` and `ruff check .`.
+
+### Tests
+
+`pytest` runs 66 tests, no network, no real accounts.
+
+| Suite | Covers |
+|---|---|
+| `test_sim` | A simulated 40-day run. |
+| `test_robust` | Crash recovery, locking, broken accounts, content validation. |
+| `test_imap` | The Gmail transport against a fake Gmail. |
+| `test_trails` | Generation, the file format, how the engine consumes it. |
+| `test_config` | Config validation and alerting. |
+| `test_ops` | Health and backup. |
 
 ## Limits you should know
 
-- Secrets are app passwords over SMTP/IMAP. OAuth would be cleaner and is the next step if Google restricts app passwords for your org.
-- A tight pool of Gmail accounts talking only to your domain is a pattern Google can detect. More peers, different personas, and moderate volume make it look less uniform. 5 to 10 peers is a good range. Keep `max_per_day` modest (30 to 50).
-- Promotions-tab placement is recorded but not auto-fixed. It is detected from `X-GM-LABELS` and from Gmail's `category:promotions` search.
-- The IMAP code is unit-tested against a fake Gmail (`tests/test_imap.py`), which proves the logic against a model of Gmail, not Gmail itself. Before trusting placement numbers, send a few messages between real accounts and confirm that `status` agrees with what you see in the inboxes, especially Spam and Promotions.
-- Warmup helps reputation only if your real sending is also clean: verified lists, low bounce rate, easy unsubscribe, spam complaints under 0.1%. Keep a trickle of warmup running after you start real campaigns.
-- Gmail may flag the Gmail peers if they only talk to one address. Add real use of those inboxes if you can.
+- **Credentials are app passwords** over SMTP and IMAP. OAuth is cleaner and the next step if Google restricts app passwords for your organisation.
+- **A tight pool of Gmail accounts talking only to your domain is a pattern Google can detect.** More peers, different personas and moderate volume look less uniform. 5 to 10 peers is a good range. Keep `max_per_day` modest (30 to 50).
+- **Promotions-tab placement is recorded but not auto-fixed.**
+- **Warmup is not a substitute for authentication or list hygiene.** It cannot rescue a domain with broken SPF, DKIM or DMARC, or one that sends unwanted mail.
+
+## Responsible use
+
+emberpost is for warming mailboxes you own, using accounts you own, to send mail people asked for. Do not use it to prepare a domain for spam or bulk unsolicited mail. Follow Google's terms of service and your local email laws. You are responsible for how you use it.
+
+## Contributing
+
+Issues and PRs are welcome. Run `pytest` and `ruff check .` before opening a PR. New behaviour needs a test.
+
+## License
+
+[MIT](LICENSE)
