@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Security vulnerability
+    url: https://github.com/shubhamkatta/emberpost/security/advisories/new
+    about: Report security issues privately. Never use a public issue.
+  - name: Discussions
+    url: https://github.com/shubhamkatta/emberpost/discussions
+    about: Open-ended questions, ideas, deliverability tips and show-and-tell.
